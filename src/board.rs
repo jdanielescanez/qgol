@@ -1,30 +1,31 @@
 
 use std::usize;
-
 use crate::utils::substract_vec;
-
-type Position = (i32, i32);
 use itertools::Itertools;
 
+type Position = (i32, i32);
+type Table = Vec<Vec<Cell>>;
+
 #[derive(PartialEq, Debug, Clone, Copy)]
-struct Cell {
+pub struct Cell {
     i: usize,
     j: usize,
-    prob_alive: f64,
+    pub prob_alive: f64,
 }
 
 #[derive(PartialEq, Debug)]
 pub struct Board {
     width: usize,
     height: usize,
-    table: Vec<Vec<Cell>>,
+    table: Table,
+    memory: Vec<Table>
 }
 
 impl Board {
     pub fn new(probabilities: Vec<Vec<f64>>) -> Self {
         let height = probabilities.len();
         let width = probabilities[0].len();
-        let mut table: Vec<Vec<Cell>> = vec![];
+        let mut table: Table = vec![];
 
         for i in 0..height {
             table.push(vec![]);
@@ -33,10 +34,13 @@ impl Board {
             }
         }
 
+        let memory = vec![table.clone()];
+
         Board {
             height,
             width,
             table,
+            memory,
         }
     }
 
@@ -90,5 +94,10 @@ impl Board {
             }
         }
         self.table = table;
+        self.memory.push(self.table.clone());
+    }
+
+    pub fn get_memory(&self) -> &Vec<Table> {
+        &self.memory
     }
 }
