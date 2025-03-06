@@ -4,7 +4,7 @@ use nom::combinator::map;
 use nom::Parser;
 use nom::{
     IResult,
-    character::complete::{space1, newline},
+    character::complete::{space1, line_ending},
     multi::separated_list1,
     number::complete::double,
 };
@@ -15,7 +15,7 @@ fn read_row(input: &str) -> IResult<&str, Vec<f64>> {
 
 pub fn read_input(input: &str) -> IResult<&str, Board> {
     map(
-        separated_list1(newline, read_row),
+        separated_list1(line_ending, read_row),
         Board::new,
     ).parse(input)
 }
