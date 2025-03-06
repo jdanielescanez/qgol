@@ -45,7 +45,7 @@ fn main() {
                     cell.prob_alive.to_string()
                 ).collect::<Vec<String>>().join(", ")
             ).collect::<Vec<String>>().join("],\n\t\t[")
-        ).collect::<Vec<String>>().join("]\n\t],[\n\t\t[");
+        ).collect::<Vec<String>>().join("]\n\t], [\n\t\t[");
     
     output = "[\n\t[\n\t\t[".to_owned() + &output + "]\n\t]\n]";
 
