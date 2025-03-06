@@ -1,5 +1,4 @@
 
-from numpy import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -9,8 +8,8 @@ class Plotter:
         return ax.imshow(matrix, vmin=0, vmax=1, cmap=CMAP, aspect='equal', animated=(turn > 0), interpolation='nearest')
 
     def generate_gif(self, matrices, file_out):
-        n = len(matrices)
-        m = len(matrices[0])
+        n = len(matrices[0][0]) / 100
+        m = len(matrices[0]) / 100
 
         fig = plt.figure(frameon=False)
         fig.set_size_inches(n, m)
