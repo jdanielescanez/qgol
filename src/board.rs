@@ -1,7 +1,7 @@
 use crate::utils::substract_vec;
 use itertools::Itertools;
 
-type Position = (usize, usize);
+type Position = (i32, i32);
 type Table = Vec<Vec<Cell>>;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -50,7 +50,8 @@ impl Board {
     }
 
     fn get_cell(&self, (i, j): Position) -> &Cell {
-        &self.table[i.rem_euclid(self.height())][j.rem_euclid(self.width())]
+        &self.table[i.rem_euclid(self.height() as i32) as usize]
+            [j.rem_euclid(self.width() as i32) as usize]
     }
 
     fn get_neighbour_cells(&self, (i, j): Position) -> Vec<&Cell> {
@@ -113,7 +114,7 @@ impl Board {
         let mut table = self.table.clone();
         for (i, row) in table.iter_mut().enumerate() {
             for (j, cell) in row.iter_mut().enumerate() {
-                cell.prob_alive = self.get_next_turn((i, j));
+                cell.prob_alive = self.get_next_turn((i as i32, j as i32));
             }
         }
         self.table = table;
