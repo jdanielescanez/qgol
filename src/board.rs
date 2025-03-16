@@ -13,6 +13,8 @@ pub struct Cell {
 pub struct Board {
     table: Table,
     memory: Vec<Table>,
+    survivals: Vec<usize>,
+    revivals: Vec<usize>,
 }
 
 impl Board {
@@ -26,7 +28,17 @@ impl Board {
 
         let memory = vec![table.clone()];
 
-        Board { table, memory }
+        Board {
+            table,
+            memory,
+            survivals: vec![2, 3],
+            revivals: vec![3],
+        }
+    }
+
+    pub fn change_rules(&mut self, (survivals, revivals): (Vec<usize>, Vec<usize>)) {
+        self.survivals = survivals;
+        self.revivals = revivals;
     }
 
     pub fn height(&self) -> usize {
@@ -58,6 +70,7 @@ impl Board {
             .combinations(n_alive)
             .map(|x| x.into_iter().copied().collect())
             .collect();
+
         combinations
             .into_iter()
             .map(|positive_combination| {
@@ -79,15 +92,21 @@ impl Board {
     fn get_next_turn(&self, position: Position) -> f64 {
         let neighbours = self.get_neighbour_cells(position);
 
-        let prob_of_2_neighbours_alive = self.get_probability_of_n_alive(&neighbours, 2);
-        let prob_of_3_neighbours_alive = self.get_probability_of_n_alive(&neighbours, 3);
-        let prob_of_2_or_3_neighbours_alive =
-            prob_of_2_neighbours_alive + prob_of_3_neighbours_alive;
+        let survival_prob: f64 = self
+            .survivals
+            .iter()
+            .map(|&survival| self.get_probability_of_n_alive(&neighbours, survival))
+            .sum();
+        let revival_prob: f64 = self
+            .revivals
+            .iter()
+            .map(|&revival| self.get_probability_of_n_alive(&neighbours, revival))
+            .sum();
 
         let prob_of_alive = self.get_cell(position).prob_alive;
         let prob_of_dead = 1.0 - prob_of_alive;
 
-        prob_of_alive * prob_of_2_or_3_neighbours_alive + prob_of_dead * prob_of_3_neighbours_alive
+        prob_of_alive * survival_prob + prob_of_dead * revival_prob
     }
 
     pub fn next(&mut self) {
