@@ -66,6 +66,10 @@ fn main() {
         .collect::<Vec<Vec<Vec<f64>>>>();
 
     output_file
-        .write_all(ron::to_string(&output).unwrap().as_bytes())
+        .write_all(
+            ron::ser::to_string_pretty(&output, ron::ser::PrettyConfig::default())
+                .unwrap()
+                .as_bytes(),
+        )
         .unwrap();
 }
