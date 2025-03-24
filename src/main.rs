@@ -38,11 +38,11 @@ fn main() {
     let (_, mut board) = read_input(&board_str).unwrap();
 
     board.change_rules((
-        ron::from_str(&args.survivals).unwrap_or_else(|_| {
+        serde_json::from_str(&args.survivals).unwrap_or_else(|_| {
             eprintln!("Please, provide the survivals in a serializable Vec<usize> way");
             std::process::exit(1)
         }),
-        ron::from_str(&args.revivals).unwrap_or_else(|_| {
+        serde_json::from_str(&args.revivals).unwrap_or_else(|_| {
             eprintln!("Please, provide the revivals in a serializable Vec<usize> way");
             std::process::exit(1)
         }),
@@ -65,10 +65,6 @@ fn main() {
         .collect::<Vec<Vec<Vec<f64>>>>();
 
     output_file
-        .write_all(
-            ron::ser::to_string_pretty(&output, ron::ser::PrettyConfig::default())
-                .unwrap()
-                .as_bytes(),
-        )
+        .write_all(serde_json::to_string_pretty(&output).unwrap().as_bytes())
         .unwrap();
 }
