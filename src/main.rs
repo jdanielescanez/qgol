@@ -15,13 +15,13 @@ use clap::Parser;
 #[command(version, about, long_about = None)]
 struct Args {
     /// Name of the file with the initial generation
-    #[arg(short, long)]
+    #[arg(index = 1)]
     input_filename: std::path::PathBuf,
     /// Name of the file to save the memory of the game
-    #[arg(short, long)]
+    #[arg(index = 2)]
     output_filename: std::path::PathBuf,
     /// Numbers of turns that will be played
-    #[arg(short, long)]
+    #[arg(index = 3)]
     turns: usize,
     /// Set of alive neighbourhoods sizes to survive in the next turn
     #[arg(short, long, default_value_t = ("[2, 3]").to_string())]
