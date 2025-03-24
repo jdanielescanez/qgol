@@ -1,5 +1,4 @@
 mod board;
-mod utils;
 
 mod parser;
 use parser::read_input;

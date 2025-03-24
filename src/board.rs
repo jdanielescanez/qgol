@@ -1,4 +1,3 @@
-use crate::utils::substract_vec;
 use itertools::Itertools;
 
 type Position = (i32, i32);
@@ -66,26 +65,20 @@ impl Board {
     }
 
     fn get_probability_of_n_alive(&self, neighbours: &[&Cell], n_alive: usize) -> f64 {
-        let combinations: Vec<Vec<&Cell>> = neighbours
-            .iter()
+        (0..neighbours.len())
             .combinations(n_alive)
-            .map(|x| x.into_iter().copied().collect())
-            .collect();
-
-        combinations
-            .into_iter()
-            .map(|positive_combination| {
-                let negative_combination_prob: f64 =
-                    substract_vec(neighbours, &positive_combination)
-                        .iter()
-                        .map(|x| 1.0 - x.prob_alive)
-                        .product();
-
-                let positive_combination_prob = positive_combination
-                    .into_iter()
-                    .map(|x| x.prob_alive)
-                    .product::<f64>();
-                positive_combination_prob * negative_combination_prob
+            .map(|combination| {
+                neighbours
+                    .iter()
+                    .enumerate()
+                    .map(|(index, cell)| {
+                        if combination.contains(&index) {
+                            cell.prob_alive
+                        } else {
+                            1.0 - cell.prob_alive
+                        }
+                    })
+                    .product::<f64>()
             })
             .sum()
     }
@@ -93,16 +86,16 @@ impl Board {
     fn get_next_turn(&self, position: Position) -> f64 {
         let neighbours = self.get_neighbour_cells(position);
 
-        let survival_prob: f64 = self
+        let survival_prob = self
             .survivals
             .iter()
             .map(|&survival| self.get_probability_of_n_alive(&neighbours, survival))
-            .sum();
-        let revival_prob: f64 = self
+            .sum::<f64>();
+        let revival_prob = self
             .revivals
             .iter()
             .map(|&revival| self.get_probability_of_n_alive(&neighbours, revival))
-            .sum();
+            .sum::<f64>();
 
         let prob_of_alive = self.get_cell(position).prob_alive;
         let prob_of_dead = 1.0 - prob_of_alive;
