@@ -37,34 +37,25 @@ fn main() {
         fs::read_to_string(args.input_filename).expect("Should have been able to read the file");
     let (_, mut board) = read_input(&board_str).unwrap();
 
-    board.change_rules((
-        serde_json::from_str(&args.survivals).unwrap_or_else(|_| {
-            eprintln!("Please, provide the survivals in a serializable Vec<usize> way");
-            std::process::exit(1)
-        }),
-        serde_json::from_str(&args.revivals).unwrap_or_else(|_| {
-            eprintln!("Please, provide the revivals in a serializable Vec<usize> way");
-            std::process::exit(1)
-        }),
-    ));
+    let survival_rules = serde_json::from_str(&args.survivals).unwrap_or_else(|_| {
+        eprintln!("Please, provide the survivals in a serializable Vec<usize> way");
+        std::process::exit(1)
+    });
+    let revival_rules = serde_json::from_str(&args.revivals).unwrap_or_else(|_| {
+        eprintln!("Please, provide the revivals in a serializable Vec<usize> way");
+        std::process::exit(1)
+    });
+    board.change_rules(survival_rules, revival_rules);
+    let mut memory = vec![board.get_state().clone()];
 
     for _ in 0..args.turns {
         board.next();
+        memory.push(board.get_state().clone());
     }
 
     let mut output_file = File::create(args.output_filename).unwrap();
 
-    let output = board
-        .get_memory()
-        .iter()
-        .map(|turn| {
-            turn.iter()
-                .map(|row| row.iter().map(|cell| cell.prob_alive).collect())
-                .collect()
-        })
-        .collect::<Vec<Vec<Vec<f64>>>>();
-
     output_file
-        .write_all(serde_json::to_string_pretty(&output).unwrap().as_bytes())
+        .write_all(serde_json::to_string_pretty(&memory).unwrap().as_bytes())
         .unwrap();
 }

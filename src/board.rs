@@ -1,17 +1,13 @@
 use itertools::Itertools;
 
 type Position = (i32, i32);
-type Table = Vec<Vec<Cell>>;
+type Table = Vec<Vec<Probability>>;
 
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub struct Cell {
-    pub prob_alive: f64,
-}
+type Probability = f64;
 
 #[derive(PartialEq, Debug)]
 pub struct Board {
-    table: Table,
-    memory: Vec<Table>,
+    probabilities: Table,
     survivals: Vec<usize>,
     revivals: Vec<usize>,
 }
@@ -20,40 +16,36 @@ impl Board {
     pub fn new(probabilities: Vec<Vec<f64>>) -> Self {
         let width = probabilities[0].len();
         assert!(probabilities.iter().all(|row| row.len() == width));
-        let table = probabilities
-            .into_iter()
-            .map(|row| row.into_iter().map(|f| Cell { prob_alive: f }).collect())
-            .collect::<Vec<_>>();
-
-        let memory = vec![table.clone()];
-
         Board {
-            table,
-            memory,
+            probabilities,
             survivals: vec![2, 3],
             revivals: vec![3],
         }
     }
 
-    pub fn change_rules(&mut self, (survivals, revivals): (Vec<usize>, Vec<usize>)) {
+    pub fn change_rules(&mut self, survivals: Vec<usize>, revivals: Vec<usize>) {
         self.survivals = survivals;
         self.revivals = revivals;
     }
 
     pub fn height(&self) -> usize {
-        self.table.len()
+        self.probabilities.len()
     }
 
     pub fn width(&self) -> usize {
-        self.table.first().map(|row| row.len()).unwrap_or(0)
+        self.probabilities.first().map(|row| row.len()).unwrap_or(0)
     }
 
-    fn get_cell(&self, (i, j): Position) -> &Cell {
-        &self.table[i.rem_euclid(self.height() as i32) as usize]
+    fn get_cell(&self, (i, j): Position) -> Probability {
+        self.probabilities[i.rem_euclid(self.height() as i32) as usize]
             [j.rem_euclid(self.width() as i32) as usize]
     }
 
-    fn get_neighbour_cells(&self, (i, j): Position) -> Vec<&Cell> {
+    pub fn get_state(&self) -> &Vec<Vec<Probability>> {
+        &self.probabilities
+    }
+
+    fn get_neighbour_cells(&self, (i, j): Position) -> Vec<Probability> {
         let mut neighbour_positions = (i - 1..=i + 1)
             .cartesian_product(j - 1..=j + 1)
             .collect::<Vec<Position>>();
@@ -64,18 +56,18 @@ impl Board {
             .collect()
     }
 
-    fn get_probability_of_n_alive(&self, neighbours: &[&Cell], n_alive: usize) -> f64 {
+    fn get_probability_of_n_alive(&self, neighbours: &[Probability], n_alive: usize) -> f64 {
         (0..neighbours.len())
             .combinations(n_alive)
             .map(|combination| {
                 neighbours
                     .iter()
                     .enumerate()
-                    .map(|(index, cell)| {
+                    .map(|(index, &probability_alive)| {
                         if combination.contains(&index) {
-                            cell.prob_alive
+                            probability_alive
                         } else {
-                            1.0 - cell.prob_alive
+                            1.0 - probability_alive
                         }
                     })
                     .product::<f64>()
@@ -97,24 +89,19 @@ impl Board {
             .map(|&revival| self.get_probability_of_n_alive(&neighbours, revival))
             .sum::<f64>();
 
-        let prob_of_alive = self.get_cell(position).prob_alive;
+        let prob_of_alive = self.get_cell(position);
         let prob_of_dead = 1.0 - prob_of_alive;
 
         prob_of_alive * survival_prob + prob_of_dead * revival_prob
     }
 
     pub fn next(&mut self) {
-        let mut table = self.table.clone();
+        let mut table = self.probabilities.clone();
         for (i, row) in table.iter_mut().enumerate() {
-            for (j, cell) in row.iter_mut().enumerate() {
-                cell.prob_alive = self.get_next_turn((i as i32, j as i32));
+            for (j, probability_alive) in row.iter_mut().enumerate() {
+                *probability_alive = self.get_next_turn((i as i32, j as i32));
             }
         }
-        self.table = table;
-        self.memory.push(self.table.clone());
-    }
-
-    pub fn get_memory(&self) -> &Vec<Table> {
-        &self.memory
+        self.probabilities = table;
     }
 }
