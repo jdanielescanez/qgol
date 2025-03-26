@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use rayon::prelude::*;
 
 type Position = (i32, i32);
 type Table = Vec<Vec<Probability>>;
@@ -97,11 +98,11 @@ impl Board {
 
     pub fn next(&mut self) {
         let mut table = self.probabilities.clone();
-        for (i, row) in table.iter_mut().enumerate() {
+        table.par_iter_mut().enumerate().for_each(|(i, row)| {
             for (j, probability_alive) in row.iter_mut().enumerate() {
                 *probability_alive = self.get_next_turn((i as i32, j as i32));
             }
-        }
+        });
         self.probabilities = table;
     }
 }
