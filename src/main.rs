@@ -22,12 +22,12 @@ struct Args {
     /// Numbers of turns that will be played
     #[arg(index = 3)]
     turns: usize,
-    /// Set of alive neighbourhoods sizes to survive in the next turn
+    /// Set of alive neighbourhoods sizes needed for a cell to survive to the next turn
     #[arg(short, long, default_value_t = ("[2, 3]").to_string())]
     survivals: String,
-    /// Set of alive neighbourhoods sizes to revive in the next turn
+    /// Set of alive neighbourhoods sizes needed for a cell to be birth in an empty spot in the next turn
     #[arg(short, long, default_value_t = ("[3]").to_string())]
-    revivals: String,
+    births: String,
 }
 
 fn main() {
@@ -41,11 +41,11 @@ fn main() {
         eprintln!("Please, provide the survivals in a serializable Vec<usize> way");
         std::process::exit(1)
     });
-    let revival_rules = serde_json::from_str(&args.revivals).unwrap_or_else(|_| {
-        eprintln!("Please, provide the revivals in a serializable Vec<usize> way");
+    let birth_rules = serde_json::from_str(&args.births).unwrap_or_else(|_| {
+        eprintln!("Please, provide the births in a serializable Vec<usize> way");
         std::process::exit(1)
     });
-    board.change_rules(survival_rules, revival_rules);
+    board.change_rules(survival_rules, birth_rules);
     let mut memory = vec![board.get_state().clone()];
 
     for _ in 0..args.turns {

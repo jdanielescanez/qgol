@@ -10,7 +10,7 @@ type Probability = f64;
 pub struct Board {
     probabilities: Table,
     survivals: Vec<usize>,
-    revivals: Vec<usize>,
+    births: Vec<usize>,
 }
 
 impl Board {
@@ -20,13 +20,13 @@ impl Board {
         Board {
             probabilities,
             survivals: vec![2, 3],
-            revivals: vec![3],
+            births: vec![3],
         }
     }
 
-    pub fn change_rules(&mut self, survivals: Vec<usize>, revivals: Vec<usize>) {
+    pub fn change_rules(&mut self, survivals: Vec<usize>, births: Vec<usize>) {
         self.survivals = survivals;
-        self.revivals = revivals;
+        self.births = births;
     }
 
     pub fn height(&self) -> usize {
@@ -57,7 +57,11 @@ impl Board {
             .collect()
     }
 
-    fn get_probability_of_n_alive(&self, neighbours: &[Probability], n_alive: usize) -> f64 {
+    fn get_probability_of_n_alive(
+        &self,
+        neighbours: &[Probability],
+        n_alive: usize,
+    ) -> Probability {
         (0..neighbours.len())
             .combinations(n_alive)
             .map(|combination| {
@@ -71,29 +75,29 @@ impl Board {
                             1.0 - probability_alive
                         }
                     })
-                    .product::<f64>()
+                    .product::<Probability>()
             })
             .sum()
     }
 
-    fn get_next_turn(&self, position: Position) -> f64 {
+    fn get_next_turn(&self, position: Position) -> Probability {
         let neighbours = self.get_neighbour_cells(position);
 
         let survival_prob = self
             .survivals
             .iter()
             .map(|&survival| self.get_probability_of_n_alive(&neighbours, survival))
-            .sum::<f64>();
-        let revival_prob = self
-            .revivals
+            .sum::<Probability>();
+        let birth_prob = self
+            .births
             .iter()
-            .map(|&revival| self.get_probability_of_n_alive(&neighbours, revival))
-            .sum::<f64>();
+            .map(|&birth| self.get_probability_of_n_alive(&neighbours, birth))
+            .sum::<Probability>();
 
         let prob_of_alive = self.get_cell(position);
         let prob_of_dead = 1.0 - prob_of_alive;
 
-        prob_of_alive * survival_prob + prob_of_dead * revival_prob
+        prob_of_alive * survival_prob + prob_of_dead * birth_prob
     }
 
     pub fn next(&mut self) {
