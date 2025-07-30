@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 
 class Plotter:
     def get_image(self, matrix, turn, ax):
-        CMAP = 'YlGnBu' # 'YlGn' # 'cividis' # 'bone'
+        CMAP = 'viridis'
         return ax.imshow(matrix, vmin=0, vmax=1, cmap=CMAP, aspect='equal', animated=(turn > 0), interpolation='nearest')
 
     def generate_gif(self, matrices, file_out):
