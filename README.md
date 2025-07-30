@@ -1,5 +1,5 @@
 
-# Quantum Game of Life
+# QGoL: Quantum Game of Life
 
 This repo contains a simulator for a Quantum Game of Life in Python (using Qiskit) and a Probabilistic Game of Life version in Rust. There is also a script that converts the JSON output of the simulators into GIFs.
 
